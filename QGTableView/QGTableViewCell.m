@@ -11,7 +11,17 @@
 @implementation QGTableViewCell
 
 
-
+- (instancetype)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
+{
+    self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
+    if (self) {
+        [self initProperty];
+    }
+    return self;
+}
+-(void)initProperty{
+    self.backgroundColor = [UIColor whiteColor];
+}
 
 
 @end

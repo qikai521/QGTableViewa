@@ -23,10 +23,11 @@
 
 
 -(NSInteger)tableView:(QGTableView *)tableView numberOfSubRowsInSection:(NSIndexPath *)indexPath{
+    
     return 3;
 }
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-    return 2;
+    return 4;
 }
 -(NSInteger )numberOfSectionsInTableView:(UITableView *)tableView{
     return 2;
@@ -36,8 +37,9 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:subCellId];
     if (!cell) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:subCellId];
+        cell.contentView.backgroundColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1];
     }
-    cell.textLabel.text = [NSString stringWithFormat:@"Im SubRow IndexPath = %ld ==== %ld ====%ld",indexPath.section,indexPath.row,indexPath.subRow];
+    cell.textLabel.text = [NSString stringWithFormat:@"     Im SubRow IndexPath = %ld ==== %ld ====%ld",indexPath.section,indexPath.row,indexPath.subRow];
     return cell;
 }
 
@@ -51,6 +53,10 @@
     cell.textLabel.text = [NSString stringWithFormat:@"Section = %ld ======Row = %ld",indexPath.section,indexPath.row];
     return cell;
     
+}
+
+-(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
+    return [NSString stringWithFormat:@"section = %ld",section];
 }
 
 @end

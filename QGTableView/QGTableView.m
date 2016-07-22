@@ -27,6 +27,13 @@ static char kQGTableView_subRowKey;
         [self addObject:array];
     }
 }
+
+-(void)initRowObjcetForCapacity:(NSInteger)numItems WithSection:(NSInteger )section {
+    for (NSInteger index = [self count]; index < numItems; index++) {
+        NSMutableArray *array = [NSMutableArray array];
+        [self addObject:array];
+    }
+}
 @end
 
 @interface QGTableView ()<UITableViewDelegate,UITableViewDataSource>
@@ -45,24 +52,7 @@ static char kQGTableView_subRowKey;
         self.delegate = self;
     }
 }
-//存储着三层结构的数组
-/* =========   1.有多少section
-   =========   2.有多少row
-   =========   3.有多少subRow
- eg:
- @[
- //section1 @[ 
-           //row1    @[
-                      
-                       ]
-           //row2    @[]
-           //row3    @[]
- 
-        ]
- //section2 @[
-        ]
- ]
- */
+
 -(NSMutableArray *)expandedPaths{
     if (_expandedPaths == nil) {
         _expandedPaths = [NSMutableArray array];
@@ -76,19 +66,28 @@ static char kQGTableView_subRowKey;
 }
 
 #pragma mark -- UITableViewDataSource
+//Row的数量
 -(NSInteger )tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     NSInteger numOfRowInSection ;
     if ([self.qgDelegate respondsToSelector:@selector(tableView:numberOfRowsInSection:)]) {
-        numOfRowInSection = [self.qgDelegate tableView:tableView numberOfRowsInSection:section] + [self.expandedPaths[section] count];
+        numOfRowInSection = [self.qgDelegate tableView:tableView numberOfRowsInSection:section];
         
+        if (numOfRowInSection != [self.expandedPaths[section] count]) {
+            [(NSMutableArray *)self.expandedPaths[section] initRowObjcetForCapacity:numOfRowInSection WithSection:section];
+        }
+        numOfRowInSection = 0;
+        for (int i = 0; i <[self.expandedPaths[section] count]; i++) {
+            NSArray *array = self.expandedPaths[section][i];
+            numOfRowInSection += array.count;
+        }
     }
-    return numOfRowInSection;
+    return numOfRowInSection + [self.expandedPaths[section] count];
 }
-
+//SubRow的数量
 -(NSInteger )tableView:(QGTableView *)tableView numberOfSubRowsInSection:(NSIndexPath *)indexPath{
     return [self.qgDelegate tableView:tableView numberOfSubRowsInSection:indexPath];
 }
-
+//Section的数量
 -(NSInteger )numberOfSectionsInTableView:(UITableView *)tableView{
     if ([self.qgDelegate respondsToSelector:@selector(numberOfSectionsInTableView:)]) {
         NSInteger numOfSection = [self.qgDelegate numberOfSectionsInTableView:tableView];
@@ -101,23 +100,38 @@ static char kQGTableView_subRowKey;
         return 1;
     }
 }
-
--(UITableViewCell *)tableView:(QGTableView *)tableView cellForSubRowAtIndexPath:(NSIndexPath *)indexPath{
-    if ([self.qgDelegate respondsToSelector:@selector(tableView:cellForSubRowAtIndexPath:)]) {
-         return [self.qgDelegate tableView:tableView cellForSubRowAtIndexPath:indexPath];
-    }
-    return nil;
-}
-
+//SubRowCell
+//-(UITableViewCell *)tableView:(QGTableView *)tableView cellForSubRowAtIndexPath:(NSIndexPath *)indexPath{
+//    UITableViewCell *cell ;
+//    if ([self.qgDelegate respondsToSelector:@selector(tableView:cellForSubRowAtIndexPath:)]) {
+//        cell = [self.qgDelegate tableView:tableView cellForSubRowAtIndexPath:indexPath];
+//        cell.backgroundColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1];
+//         return cell;
+//    }
+//    return nil;
+//}
+//RowCell
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-    QGTableViewCell *cell ;
+    NSLog(@"indexPath ===== %ld ------%ld",indexPath.section,indexPath.row);
+    UITableViewCell *cell ;
     if ([self.qgDelegate respondsToSelector:@selector(tableView:cellForRowAtIndexPath:)]) {
-        cell = (QGTableViewCell *)[self.qgDelegate tableView:tableView cellForRowAtIndexPath:indexPath];
+        if (![[self.expandedCells allKeys] containsObject:indexPath]) {
+            cell = [self.qgDelegate tableView:tableView cellForRowAtIndexPath:indexPath];
+        }else{
+            cell = [self.qgDelegate tableView:(QGTableView *)tableView cellForSubRowAtIndexPath:indexPath];
+        }
     }
     return cell;
 }
+//组头名
+-(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
+    if([self.qgDelegate respondsToSelector:@selector(tableView:titleForHeaderInSection:)]){
+        return [self.qgDelegate tableView:tableView titleForHeaderInSection:section];
+    }else{
+        return nil;
+    }
+}
 //点击事件
-
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
     if ([self.qgDelegate respondsToSelector:@selector(tableView:didSelectRowAtIndexPath:)]) {
         [self.qgDelegate tableView:tableView didSelectRowAtIndexPath:indexPath];
@@ -138,12 +152,63 @@ static char kQGTableView_subRowKey;
         }
         if (cell.isOpened) {
             //如果说要变成打开状态的话那么需要插入cell
+            //首先需要将subRow插入到Row之中去
+            [self insertSubRowToRowWithTableView:tableView WithIndexPath:indexPath];
             
+        }else{
+            //如果要从打开状态变成关闭状态需要removeCell
+            [self removeSubRowToRowWithTableView:tableView WithIndexPath:indexPath];
         }
-        
     }
     
     
+}
+
+-(void)insertSubRowToRowWithTableView:(UITableView *)tableView WithIndexPath:(NSIndexPath *)indexPath{
+    //首先要知道有多少个subRow
+    NSInteger numOfSubRow = [self tableView:(QGTableView *)tableView numberOfSubRowsInSection:indexPath];
+    //将subRow插入到Row
+    NSMutableArray *indexPaths = [NSMutableArray array];
+    NSInteger realRow = [self backRealRowWithTableView:tableView AndIndexPath:indexPath];
+    for (NSInteger i = numOfSubRow ; i >= 1; i --) {
+        NSIndexPath *subIndexPath = [NSIndexPath indexPathForRow:indexPath.row + i inSection:indexPath.section];
+        [indexPaths addObject:subIndexPath];
+        indexPath.subRow = i;
+        [(NSMutableArray *)self.expandedPaths[indexPath.section][realRow] addObject:subIndexPath];
+        [self.expandedCells setObject:indexPath forKey:subIndexPath];
+    }
+    [tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
+
+}
+-(void)removeSubRowToRowWithTableView:(UITableView *)tableView WithIndexPath:(NSIndexPath *)indexPath{
+    NSInteger realRow = [self backRealRowWithTableView:tableView AndIndexPath:indexPath];
+    NSInteger numOfSubRow = [self tableView:(QGTableView *)tableView numberOfSubRowsInSection:indexPath];
+    NSMutableArray *indexPaths = [NSMutableArray array];
+    for (int i = 1; i <= numOfSubRow; i++) {
+        NSIndexPath *subIndexPath = [NSIndexPath indexPathForRow:indexPath.row +i inSection:indexPath.section];
+        [indexPaths addObject:subIndexPath];
+        [(NSMutableArray *)self.expandedPaths[indexPath.section][realRow] removeObject:subIndexPath];
+        NSArray *subRows = [self.expandedCells allKeys];
+        for (NSIndexPath *keyIndexPath in subRows) {
+            NSIndexPath *valueIndexPath = [self.expandedCells objectForKey:keyIndexPath];
+            if (valueIndexPath == indexPath) {
+                [self.expandedCells removeObjectForKey:keyIndexPath];
+            }
+        }
+    }
+    [tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
+}
+
+//根据indexPath 和 self.expandCells 判断得到点击的到底是哪个Row
+-(NSInteger )backRealRowWithTableView:(UITableView *)tableView AndIndexPath:(NSIndexPath *)indexPath{
+    NSArray *array = [self.expandedCells allKeys];
+    NSMutableArray *subRows = [NSMutableArray array];
+    for (NSIndexPath *allIndexPath in array) {
+        if (allIndexPath.row < indexPath.row) {
+            [subRows addObject:allIndexPath];
+        }
+    }
+    return indexPath.row - subRows.count;
 }
 
 
