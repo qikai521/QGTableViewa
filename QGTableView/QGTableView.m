@@ -56,6 +56,7 @@ static char kQGTableView_subRowKey;
 //用于存储所有的
 @property (nonatomic ,strong) NSMutableArray *expandedPaths;
 @property (nonatomic ,strong ) NSMutableDictionary *expandedCells;
+@property (nonatomic ,strong ) UILongPressGestureRecognizer *longPress;
 
 @end
 
@@ -66,6 +67,36 @@ static char kQGTableView_subRowKey;
         _qgDelegate = qgDelegate;
         self.dataSource = self;
         self.delegate = self;
+    }
+}
+//设置是否添加长按手势
+-(void)setIsCanLongPress:(BOOL)isCanLongPress{
+    if (isCanLongPress == YES) {
+        _isCanLongPress = YES;
+        //如果设置的是yes 需要添加长安手势
+        if ([self.qgDelegate respondsToSelector:@selector(longPressActionWithGes:WithIndexPath:)]) {
+            self.longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressTododWithLongPress:)];
+            [self addGestureRecognizer:self.longPress];
+        }
+    }else{
+        _isCanLongPress = NO;
+        [self removeGestureRecognizer:self.longPress];
+        self.longPress = nil;
+    }
+}
+
+-(void)longPressTododWithLongPress:(UILongPressGestureRecognizer *)longPress{
+    if (longPress.state == UIGestureRecognizerStateBegan) {
+        if ([self.qgDelegate respondsToSelector:@selector(longPressActionWithGes:WithIndexPath:)]) {
+            NSIndexPath *touchIndexPath = [self indexPathForRowAtPoint:[longPress locationInView:longPress.view]];
+            NSInteger realRow = [self backRealRowWhenNoMoreOpenWithTableView:self AndIndexPath:touchIndexPath];
+            UITableViewCell *cell = [self cellForRowAtIndexPath:touchIndexPath];
+            if (![cell isKindOfClass:[QGTableViewCell class ]]) {
+                realRow -- ;
+            }
+            [self.qgDelegate longPressActionWithGes:longPress WithIndexPath:[NSIndexPath indexPathForRow:realRow inSection:touchIndexPath.section]];
+            
+        }
     }
 }
 

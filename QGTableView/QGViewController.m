@@ -30,9 +30,13 @@
 -(void)creatTableView{
     self.qgTableView = [[QGTableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
     self.qgTableView.qgDelegate = self;
+    self.qgTableView.isCanLongPress = YES;
     [self.view addSubview:self.qgTableView];
 }
 
+-(void)longPressActionWithGes:(UILongPressGestureRecognizer *)longPress WithIndexPath:(NSIndexPath *)touchIndexPath{
+    NSLog(@"============%ld ======%ld=",touchIndexPath.section,touchIndexPath.row);
+}
 
 -(NSInteger)tableView:(QGTableView *)tableView numberOfSubRowsInSection:(NSIndexPath *)indexPath{
     return  [_titles[indexPath.section][@"array"][indexPath.row][@"array"] count];
