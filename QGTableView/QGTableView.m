@@ -18,7 +18,7 @@ static char kQGTableView_subRowKey;
 
 @end
 
-@implementation NSMutableArray (SKSTableView)
+@implementation NSMutableArray (QGTableView)
 
 - (void)initiateObjectsForCapacity:(NSInteger)numItems
 {
@@ -34,6 +34,22 @@ static char kQGTableView_subRowKey;
         [self addObject:array];
     }
 }
+@end
+@interface NSMutableDictionary (QGTableView)
+-(void)removeAllObjectsInSection:(NSInteger )section;
+@end
+
+@implementation NSMutableDictionary (QGTableView)
+
+-(void)removeAllObjectsInSection:(NSInteger )section{
+    NSArray *array = [self allKeys];
+    for (NSIndexPath *indexPath  in array) {
+        if (indexPath.section == section) {
+            [self removeObjectForKey:indexPath];
+        }
+    }
+}
+
 @end
 
 @interface QGTableView ()<UITableViewDelegate,UITableViewDataSource>
@@ -63,6 +79,13 @@ static char kQGTableView_subRowKey;
     if (!_expandedCells)
         _expandedCells = [NSMutableDictionary dictionary];
     return _expandedCells;
+}
+
+-(NSMutableArray *)openIndexPaths{
+    if (!_openIndexPaths) {
+        _openIndexPaths = [NSMutableArray arrayWithCapacity:[self numberOfSectionsInTableView:self]];
+    }
+    return _openIndexPaths;
 }
 
 #pragma mark -- UITableViewDataSource
@@ -112,7 +135,6 @@ static char kQGTableView_subRowKey;
 //}
 //RowCell
 -(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
-    NSLog(@"indexPath ===== %ld ------%ld",indexPath.section,indexPath.row);
     UITableViewCell *cell ;
     if ([self.qgDelegate respondsToSelector:@selector(tableView:cellForRowAtIndexPath:)]) {
         if (![[self.expandedCells allKeys] containsObject:indexPath]) {
@@ -137,7 +159,6 @@ static char kQGTableView_subRowKey;
         [self.qgDelegate tableView:tableView didSelectRowAtIndexPath:indexPath];
     }
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    
     __block QGTableViewCell *cell = (QGTableViewCell *)[tableView cellForRowAtIndexPath:indexPath];
     if ([cell isKindOfClass:[QGTableViewCell class]] && cell.isCanOpen == YES) {
         //点击的是可以被打开的cell
@@ -153,17 +174,76 @@ static char kQGTableView_subRowKey;
         if (cell.isOpened) {
             //如果说要变成打开状态的话那么需要插入cell
             //首先需要将subRow插入到Row之中去
-            [self insertSubRowToRowWithTableView:tableView WithIndexPath:indexPath];
-            
+            if (self.canOpenMore == NO) {
+                for(int i = 0 ; i < [self tableView:tableView numberOfRowsInSection:indexPath.section]; i ++){
+                    QGTableViewCell *otherCell = [tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:i inSection:indexPath.section]];
+                    if ([otherCell isKindOfClass:[QGTableViewCell class]] && otherCell !=cell) {
+                        otherCell.isOpened = NO;
+                    }
+                }
+                [self insertSubRowToRowWhenNoMoreOpenWithTableView:tableView WithIndexPath:indexPath];
+            }
+            else{
+                //如果不是多开状态的话
+                [self insertSubRowToRowWithTableView:tableView WithIndexPath:indexPath];
+            }
         }else{
-            //如果要从打开状态变成关闭状态需要removeCell
+            //如果是已经打开的状态
+            
             [self removeSubRowToRowWithTableView:tableView WithIndexPath:indexPath];
         }
     }
-    
+        NSLog(@"-----cells.count = %ld",[self.expandedCells allKeys].count);
     
 }
+#pragma mark -- 不可以多开的情况下的插入
+-(void)insertSubRowToRowWhenNoMoreOpenWithTableView:(UITableView *)tableView WithIndexPath:(NSIndexPath *)indexPath{
+    //首先要知道有多少个subRow
+    NSInteger numOfSubRow = [self tableView:(QGTableView *)tableView numberOfSubRowsInSection:indexPath];
+    NSInteger realRow = [self backRealRowWhenNoMoreOpenWithTableView:tableView AndIndexPath:indexPath];
+    NSIndexPath *realIndexPath =  [NSIndexPath indexPathForRow:[self backRealRowWithTableView:tableView AndIndexPath:indexPath] inSection:indexPath.section];
+    //首先判断一下有没有打开状态的cell
+    NSArray *removeIndexPaths;
+    //判断一下对应的section内有没有组的打开的
+    if ([self isSomeCellOpenInSection:indexPath.section]) {
+        removeIndexPaths = [self getRemoveArrWithSection:indexPath.section];
+        //先删除exPanIndexPath里面的内容
+        NSMutableArray *sectionArr = self.expandedPaths[indexPath.section];
+        for (NSMutableArray *rowArr in sectionArr) {
+            [rowArr removeAllObjects];
+        }
+        
+        [tableView deleteRowsAtIndexPaths:removeIndexPaths withRowAnimation:UITableViewRowAnimationTop];
+        [self.expandedCells removeAllObjectsInSection:indexPath.section];
+    }
+    //将subRow插入到Row
+    NSMutableArray *indexPaths = [NSMutableArray array];
+    for (NSInteger i = numOfSubRow ; i >= 1; i --) {
+        NSIndexPath *subIndexPath = [NSIndexPath indexPathForRow:realRow + i inSection:indexPath.section];
+        [indexPaths addObject:subIndexPath];
+        indexPath.subRow = i;
+        [(NSMutableArray *)self.expandedPaths[indexPath.section][realRow] addObject:subIndexPath];
+        [self.expandedCells setObject:realIndexPath forKey:subIndexPath];
+    }
+    [tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
+}
 
+-(NSInteger )backRealRowWhenNoMoreOpenWithTableView:(UITableView *)tableView AndIndexPath:(NSIndexPath *)indexPath{
+    NSArray *array = [self getRemoveArrWithSection:indexPath.section];
+    NSMutableArray *subRows = [NSMutableArray array];
+    for (NSIndexPath *allIndexPath in array) {
+        if (allIndexPath.row < indexPath.row) {
+            [subRows addObject:allIndexPath];
+        }
+    }
+    NSInteger backIntger = indexPath.row - subRows.count;
+    return backIntger;
+}
+
+
+
+
+#pragma mark -- 可以多开的情况下的插入
 -(void)insertSubRowToRowWithTableView:(UITableView *)tableView WithIndexPath:(NSIndexPath *)indexPath{
     //首先要知道有多少个subRow
     NSInteger numOfSubRow = [self tableView:(QGTableView *)tableView numberOfSubRowsInSection:indexPath];
@@ -180,6 +260,7 @@ static char kQGTableView_subRowKey;
     [tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
 
 }
+#pragma mark -- 可以多开的情况下的删除
 -(void)removeSubRowToRowWithTableView:(UITableView *)tableView WithIndexPath:(NSIndexPath *)indexPath{
     NSInteger realRow = [self backRealRowWithTableView:tableView AndIndexPath:indexPath];
     NSInteger numOfSubRow = [self tableView:(QGTableView *)tableView numberOfSubRowsInSection:indexPath];
@@ -188,20 +269,21 @@ static char kQGTableView_subRowKey;
         NSIndexPath *subIndexPath = [NSIndexPath indexPathForRow:indexPath.row +i inSection:indexPath.section];
         [indexPaths addObject:subIndexPath];
         [(NSMutableArray *)self.expandedPaths[indexPath.section][realRow] removeObject:subIndexPath];
-        NSArray *subRows = [self.expandedCells allKeys];
-        for (NSIndexPath *keyIndexPath in subRows) {
-            NSIndexPath *valueIndexPath = [self.expandedCells objectForKey:keyIndexPath];
-            if (valueIndexPath == indexPath) {
-                [self.expandedCells removeObjectForKey:keyIndexPath];
-            }
+    }
+    NSArray *subRows = [self getRemoveArrWithSection:indexPath.section];
+    for (NSIndexPath *keyIndexPath in subRows) {
+        NSIndexPath *valueIndexPath = [self.expandedCells objectForKey:keyIndexPath];
+        if (valueIndexPath == [NSIndexPath indexPathForRow:realRow inSection:indexPath.section]) {
+            [self.expandedCells removeObjectForKey:keyIndexPath];
         }
     }
+
     [tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
 }
 
 //根据indexPath 和 self.expandCells 判断得到点击的到底是哪个Row
 -(NSInteger )backRealRowWithTableView:(UITableView *)tableView AndIndexPath:(NSIndexPath *)indexPath{
-    NSArray *array = [self.expandedCells allKeys];
+    NSArray *array = [self getRemoveArrWithSection:indexPath.section];
     NSMutableArray *subRows = [NSMutableArray array];
     for (NSIndexPath *allIndexPath in array) {
         if (allIndexPath.row < indexPath.row) {
@@ -209,6 +291,27 @@ static char kQGTableView_subRowKey;
         }
     }
     return indexPath.row - subRows.count;
+}
+
+-(BOOL )isSomeCellOpenInSection:(NSInteger )section{
+    NSArray *sectionInfos = [self.expandedCells allKeys];
+    for (NSIndexPath *indexPath in sectionInfos) {
+        if (indexPath.section == section) {
+            return YES;
+        }
+    }
+    return NO;
+    
+}
+-(NSArray *)getRemoveArrWithSection:(NSInteger )section{
+    NSArray *allIndexPath = [self.expandedCells allKeys];
+    NSMutableArray *removeIndexPaths = [NSMutableArray array];
+    for (NSIndexPath *removeIndexPath in allIndexPath) {
+        if (removeIndexPath.section == section) {
+            [removeIndexPaths addObject:removeIndexPath];
+        }
+    }
+    return (NSArray *)removeIndexPaths;
 }
 
 
@@ -233,4 +336,5 @@ static char kQGTableView_subRowKey;
     indexPath.subRow = subRow;
     return indexPath;
 }
+
 @end

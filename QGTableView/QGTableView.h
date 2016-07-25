@@ -30,7 +30,8 @@
 @interface QGTableView : UITableView
 
 @property (nonatomic ,strong )id <QGTableViewDelegate> qgDelegate;//设置qgDelagte之后就无须设置tableviewdelegate 和 dataSource
-
+@property (nonatomic ,assign )BOOL canOpenMore; //可以多开在一个组当中
+@property (nonatomic ,strong )NSMutableArray *openIndexPaths;
 @end
 
 #pragma mark --为NSIndexPath开辟一个方法 和一个属性（必须在这里写 ，因为需要用到indexPathForRow InSection  , 这个方法也是一个类目）

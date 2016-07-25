@@ -130,9 +130,9 @@
 				B9A5CD721D3F1D4F00BA7757 /* QGViewController.m */,
 				B9A5CD6D1D3F1C1900BA7757 /* QGTableView */,
 				B9A5CD3D1D3F1BE100BA7757 /* Main.storyboard */,
+				B9A5CD481D3F1BE100BA7757 /* Info.plist */,
 				B9A5CD431D3F1BE100BA7757 /* Assets.xcassets */,
 				B9A5CD451D3F1BE100BA7757 /* LaunchScreen.storyboard */,
-				B9A5CD481D3F1BE100BA7757 /* Info.plist */,
 				B9A5CD401D3F1BE100BA7757 /* QGTableView.xcdatamodeld */,
 				B9A5CD341D3F1BE100BA7757 /* Supporting Files */,
 			);

@@ -23,11 +23,16 @@
 
 
 -(NSInteger)tableView:(QGTableView *)tableView numberOfSubRowsInSection:(NSIndexPath *)indexPath{
-    
-    return 3;
+    if ((indexPath.section + indexPath.row)%2 == 0) {
+        return 3;
+    }
+    return 1;
 }
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-    return 4;
+    if (section == 0 ) {
+        return 3;
+    }
+    return 5;
 }
 -(NSInteger )numberOfSectionsInTableView:(UITableView *)tableView{
     return 2;
