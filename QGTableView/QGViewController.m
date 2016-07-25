@@ -71,4 +71,8 @@
     return [NSString stringWithFormat:@"section = %@",self.titles[section][@"title"]];
 }
 
+-(CGFloat )tableView:(UITableView *)tableView heightForSubRowAtIndexPath:(NSIndexPath *)indexPath{
+    return 80;
+}
+
 @end

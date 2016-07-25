@@ -24,6 +24,7 @@
 
 -(UITableViewCell *)tableView:(QGTableView *)tableView cellForSubRowAtIndexPath:(NSIndexPath *)indexPath;
 
+-(CGFloat )tableView:(UITableView *)tableView heightForSubRowAtIndexPath:(NSIndexPath *)indexPath;
 @end
 
 #pragma mark -- QGTableView

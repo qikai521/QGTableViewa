@@ -145,6 +145,23 @@ static char kQGTableView_subRowKey;
     }
     return cell;
 }
+//返回Cell高度
+-(CGFloat )tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    if ([[self.expandedCells allKeys] containsObject:indexPath]) {
+        if ([self.qgDelegate respondsToSelector:@selector(tableView:heightForSubRowAtIndexPath:)]) {
+            return [self.qgDelegate tableView:tableView heightForSubRowAtIndexPath:indexPath];
+        }else{
+            return 44;
+        }
+    }else{
+        if ([self.qgDelegate respondsToSelector:@selector(tableView:heightForRowAtIndexPath:)]) {
+            return [self.qgDelegate tableView:tableView heightForRowAtIndexPath:indexPath];
+        }else{
+            return 44;
+        }
+    }
+}
+
 //组头名
 -(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
     if([self.qgDelegate respondsToSelector:@selector(tableView:titleForHeaderInSection:)]){
@@ -302,6 +319,7 @@ static char kQGTableView_subRowKey;
     return NO;
     
 }
+#pragma mark -- 获取当前组的所有的cell
 -(NSArray *)getRemoveArrWithSection:(NSInteger )section{
     NSArray *allIndexPath = [self.expandedCells allKeys];
     NSMutableArray *removeIndexPaths = [NSMutableArray array];
