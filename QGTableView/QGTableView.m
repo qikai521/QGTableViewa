@@ -108,7 +108,7 @@ static char kQGTableView_subRowKey;
 }
 //SubRow的数量
 -(NSInteger )tableView:(QGTableView *)tableView numberOfSubRowsInSection:(NSIndexPath *)indexPath{
-    return [self.qgDelegate tableView:tableView numberOfSubRowsInSection:indexPath];
+    return [self.qgDelegate tableView:tableView numberOfSubRowsInSection:[self backShowIndexPathWithRealIndexPath:indexPath]];
 }
 //Section的数量
 -(NSInteger )numberOfSectionsInTableView:(UITableView *)tableView{
@@ -138,9 +138,9 @@ static char kQGTableView_subRowKey;
     UITableViewCell *cell ;
     if ([self.qgDelegate respondsToSelector:@selector(tableView:cellForRowAtIndexPath:)]) {
         if (![[self.expandedCells allKeys] containsObject:indexPath]) {
-            cell = [self.qgDelegate tableView:tableView cellForRowAtIndexPath:indexPath];
+            cell = [self.qgDelegate tableView:tableView cellForRowAtIndexPath:[self backShowIndexPathWithRealIndexPath:indexPath]];
         }else{
-            cell = [self.qgDelegate tableView:(QGTableView *)tableView cellForSubRowAtIndexPath:indexPath];
+            cell = [self.qgDelegate tableView:(QGTableView *)tableView cellForSubRowAtIndexPath:[self backShowIndexPathWithRealIndexPath:indexPath]];
         }
     }
     return cell;
@@ -193,7 +193,6 @@ static char kQGTableView_subRowKey;
             [self removeSubRowToRowWithTableView:tableView WithIndexPath:indexPath];
         }
     }
-        NSLog(@"-----cells.count = %ld",[self.expandedCells allKeys].count);
     
 }
 #pragma mark -- 不可以多开的情况下的插入
@@ -313,7 +312,31 @@ static char kQGTableView_subRowKey;
     }
     return (NSArray *)removeIndexPaths;
 }
-
+-(NSIndexPath *)backShowIndexPathWithRealIndexPath:(NSIndexPath *)indexPath{
+    //首先获取当前组的在这个indexPath 之上的所有额indexpath
+    int krow = 0;
+    int ksection = indexPath.section;
+    int ksubRow = 0;
+    NSArray *allIndexPaths = [self getRemoveArrWithSection:indexPath.section];
+    NSMutableArray *upIndexPaths = [NSMutableArray array];
+    for (NSIndexPath *oneIndexPath in allIndexPaths) {
+        if (oneIndexPath.row < indexPath.row) {
+            [upIndexPaths addObject:oneIndexPath];
+        }
+    }
+    krow = indexPath.row  - upIndexPaths.count;
+    if ([[self.expandedCells allKeys] containsObject:indexPath]) {
+        //判断包含indexPath  如果包含的话就证明是subRow
+//        那么Row 就需要-1
+        krow = krow - 1;
+        ksubRow = indexPath.row - krow - 1;
+    }else{
+        ksubRow = -1;
+    }
+    NSIndexPath *returnIndexPath = [NSIndexPath indexPathForRow:krow inSection:ksection];
+    returnIndexPath.subRow = ksubRow;
+    return returnIndexPath;
+}
 
 
 

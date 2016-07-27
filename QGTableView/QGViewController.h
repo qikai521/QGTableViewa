@@ -12,4 +12,5 @@
 
 
 @property (nonatomic ,strong)QGTableView *qgTableView;
+@property (nonatomic, strong)NSArray *titles;
 @end

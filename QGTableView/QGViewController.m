@@ -14,6 +14,18 @@
 {
     [super viewDidLoad];
     [self creatTableView];
+    self.titles = @[
+                    @{@"title":@"section1",@"array":
+                          @[@{@"title":@"row1asd",@"array":@[@"subRow1-----",@"subRow2------"]},
+                            @{@"title":@"row23asd",@"array":@[@"subRow*******"]},
+                            
+                            @{@"title":@"row234523asd",@"array":@[@"subRowwwww1",@"subRowwwww2",@"subRowwwww3",@"subRowwwww4"]}]},
+                    @{@"title":@"section2",@"array":
+                          @[@{@"title":@"rrrrrow2ssdf",@"array":@[]},
+                            @{@"title":@"r======-___",@"array":@[@"11111kkkkkk",@"222222kkkkkk"]},
+                            @{@"title":@"rrrsadasdfsdf",@"array":@[@"123",@"234",@"345",@"456"]},
+                            @{@"title":@"qqqqqqw2ssdf",@"array":@[@"OhHAyO"]}]}];
+
 }
 -(void)creatTableView{
     self.qgTableView = [[QGTableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];
@@ -23,19 +35,13 @@
 
 
 -(NSInteger)tableView:(QGTableView *)tableView numberOfSubRowsInSection:(NSIndexPath *)indexPath{
-    if ((indexPath.section + indexPath.row)%2 == 0) {
-        return 3;
-    }
-    return 1;
+    return  [_titles[indexPath.section][@"array"][indexPath.row][@"array"] count];
 }
 -(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
-    if (section == 0 ) {
-        return 3;
-    }
-    return 5;
+    return [_titles[section][@"array"] count];
 }
 -(NSInteger )numberOfSectionsInTableView:(UITableView *)tableView{
-    return 2;
+    return  _titles.count;
 }
 -(UITableViewCell *)tableView:(QGTableView *)tableView cellForSubRowAtIndexPath:(NSIndexPath *)indexPath{
     static NSString *subCellId = @"subCellId";
@@ -44,7 +50,8 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:subCellId];
         cell.contentView.backgroundColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1];
     }
-    cell.textLabel.text = [NSString stringWithFormat:@"     Im SubRow IndexPath = %ld ==== %ld ====%ld",indexPath.section,indexPath.row,indexPath.subRow];
+    NSLog(@"subRow = %ld === %ld === %ld",indexPath.section ,indexPath.row,indexPath.subRow);
+    cell.textLabel.text = [NSString stringWithFormat:@"====%@====",self.titles[indexPath.section][@"array"][indexPath.row][@"array"][indexPath.subRow]];
     return cell;
 }
 
@@ -55,13 +62,13 @@
         cell = [[QGTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:cellId];
         cell.isCanOpen = YES;
     }
-    cell.textLabel.text = [NSString stringWithFormat:@"Section = %ld ======Row = %ld",indexPath.section,indexPath.row];
+    cell.textLabel.text = [NSString stringWithFormat:@"****%@",self.titles[indexPath.section][@"array"][indexPath.row][@"title"]];
     return cell;
     
 }
 
 -(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
-    return [NSString stringWithFormat:@"section = %ld",section];
+    return [NSString stringWithFormat:@"section = %@",self.titles[section][@"title"]];
 }
 
 @end
