@@ -89,12 +89,12 @@ static char kQGTableView_subRowKey;
     if (longPress.state == UIGestureRecognizerStateBegan) {
         if ([self.qgDelegate respondsToSelector:@selector(longPressActionWithGes:WithIndexPath:)]) {
             NSIndexPath *touchIndexPath = [self indexPathForRowAtPoint:[longPress locationInView:longPress.view]];
-            NSInteger realRow = [self backRealRowWhenNoMoreOpenWithTableView:self AndIndexPath:touchIndexPath];
-            UITableViewCell *cell = [self cellForRowAtIndexPath:touchIndexPath];
-            if (![cell isKindOfClass:[QGTableViewCell class ]]) {
-                realRow -- ;
-            }
-            [self.qgDelegate longPressActionWithGes:longPress WithIndexPath:[NSIndexPath indexPathForRow:realRow inSection:touchIndexPath.section]];
+            NSIndexPath *nowIndexPath = [self backShowIndexPathWithRealIndexPath:touchIndexPath];
+//            UITableViewCell *cell = [self cellForRowAtIndexPath:touchIndexPath];
+//            if (![cell isKindOfClass:[QGTableViewCell class ]]) {
+//                realRow -- ;
+//            }
+            [self.qgDelegate longPressActionWithGes:longPress WithIndexPath:nowIndexPath];
             
         }
     }

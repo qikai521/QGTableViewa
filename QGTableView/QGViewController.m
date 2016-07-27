@@ -35,7 +35,7 @@
 }
 
 -(void)longPressActionWithGes:(UILongPressGestureRecognizer *)longPress WithIndexPath:(NSIndexPath *)touchIndexPath{
-    NSLog(@"============%ld ======%ld=",touchIndexPath.section,touchIndexPath.row);
+    NSLog(@"============%ld ======%ld======%ld",touchIndexPath.section,touchIndexPath.row,touchIndexPath.subRow);
 }
 
 -(NSInteger)tableView:(QGTableView *)tableView numberOfSubRowsInSection:(NSIndexPath *)indexPath{
@@ -76,7 +76,7 @@
 }
 
 -(CGFloat )tableView:(UITableView *)tableView heightForSubRowAtIndexPath:(NSIndexPath *)indexPath{
-    return 80;
+    return 90;
 }
 
 @end
