@@ -25,6 +25,9 @@
 -(UITableViewCell *)tableView:(QGTableView *)tableView cellForSubRowAtIndexPath:(NSIndexPath *)indexPath;
 
 -(CGFloat )tableView:(UITableView *)tableView heightForSubRowAtIndexPath:(NSIndexPath *)indexPath;
+
+-(void)tableView:(UITableView *)tableView didSelectSubRowAtIndexPath:(NSIndexPath *)indexPath;
+
 @optional  // 如果设置将qgtableView 的iscanLongPress设置YES 的话必须实现这个方法
 -(void)longPressActionWithGes:(UILongPressGestureRecognizer *)longPress
                 WithIndexPath:(NSIndexPath *)touchIndexPath;

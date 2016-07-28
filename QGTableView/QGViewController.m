@@ -54,7 +54,6 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:subCellId];
         cell.contentView.backgroundColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1];
     }
-    NSLog(@"subRow = %ld === %ld === %ld",indexPath.section ,indexPath.row,indexPath.subRow);
     cell.textLabel.text = [NSString stringWithFormat:@"====%@====",self.titles[indexPath.section][@"array"][indexPath.row][@"array"][indexPath.subRow]];
     return cell;
 }
@@ -76,7 +75,7 @@
 }
 
 -(CGFloat )tableView:(UITableView *)tableView heightForSubRowAtIndexPath:(NSIndexPath *)indexPath{
-    return 90;
+    return 20;
 }
 
 @end

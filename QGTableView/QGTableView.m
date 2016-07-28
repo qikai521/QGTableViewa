@@ -240,6 +240,10 @@ static char kQGTableView_subRowKey;
             
             [self removeSubRowToRowWithTableView:tableView WithIndexPath:indexPath];
         }
+    }else{
+        if ([self.qgDelegate respondsToSelector:@selector(tableView:didSelectSubRowAtIndexPath:)]) {
+            [self.qgDelegate tableView:tableView didSelectSubRowAtIndexPath:[self backShowIndexPathWithRealIndexPath:indexPath]];
+        }
     }
     
 }
@@ -260,7 +264,7 @@ static char kQGTableView_subRowKey;
             [rowArr removeAllObjects];
         }
         
-        [tableView deleteRowsAtIndexPaths:removeIndexPaths withRowAnimation:UITableViewRowAnimationTop];
+        [tableView deleteRowsAtIndexPaths:removeIndexPaths withRowAnimation:UITableViewRowAnimationNone];
         [self.expandedCells removeAllObjectsInSection:indexPath.section];
     }
     //将subRow插入到Row
@@ -304,7 +308,7 @@ static char kQGTableView_subRowKey;
         [(NSMutableArray *)self.expandedPaths[indexPath.section][realRow] addObject:subIndexPath];
         [self.expandedCells setObject:indexPath forKey:subIndexPath];
     }
-    [tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
+    [tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
 
 }
 #pragma mark -- 可以多开的情况下的删除
@@ -325,7 +329,7 @@ static char kQGTableView_subRowKey;
         }
     }
 
-    [tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationTop];
+    [tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationNone];
 }
 
 //根据indexPath 和 self.expandCells 判断得到点击的到底是哪个Row
