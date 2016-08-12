@@ -41,7 +41,8 @@
 @property (nonatomic ,strong )NSMutableArray *openIndexPaths;
 @property (nonatomic ,assign )BOOL isCanLongPress;
 -(NSInteger )backRealRowWhenNoMoreOpenWithTableView:(UITableView *)tableView AndIndexPath:(NSIndexPath *)indexPath;
-
+-(NSIndexPath *)backShowIndexPathWithRealIndexPath:(NSIndexPath *)indexPath;
+-(void)clearExpens;
 @end
 
 #pragma mark --为NSIndexPath开辟一个方法 和一个属性（必须在这里写 ，因为需要用到indexPathForRow InSection  , 这个方法也是一个类目）

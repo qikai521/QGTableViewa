@@ -14,6 +14,7 @@
 {
     [super viewDidLoad];
     [self creatTableView];
+    [self openRun];
     self.titles = @[
                     @{@"title":@"section1",@"array":
                           @[@{@"title":@"row1asd",@"array":@[@"subRow1-----",@"subRow2------"]},
@@ -25,7 +26,40 @@
                             @{@"title":@"r======-___",@"array":@[@"11111kkkkkk",@"222222kkkkkk"]},
                             @{@"title":@"rrrsadasdfsdf",@"array":@[@"123",@"234",@"345",@"456"]},
                             @{@"title":@"qqqqqqw2ssdf",@"array":@[@"OhHAyO"]}]}];
+    
+    for (int i = 0; i < 0 ; i++) {
+        UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
+        btn.tag = 100+i;
+        btn.frame = CGRectMake(100 + 100*i, 400, 50, 30);
+        if (i == 0) {
+            [btn setTitle:@"star" forState:UIControlStateNormal];
+        }else{
+            [btn setTitle:@"stop" forState:UIControlStateNormal];
+        }
+        btn.backgroundColor = [UIColor redColor];
+        [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [btn addTarget:self action:@selector(btnClick:) forControlEvents:UIControlEventTouchUpInside];
+        [self.view addSubview:btn];
+    }
+}
 
+-(void)btnClick:(UIButton *)btn{
+    if (btn.tag == 100) {
+        //开始胡乱点击
+        
+    }else{
+        //停止点击
+    }
+}
+
+-(void)openRun{
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(refreshTableView) userInfo:nil repeats:YES];
+        [[NSRunLoop currentRunLoop] run];
+    });
+}
+-(void)refreshTableView{
+    [self.qgTableView performSelector:@selector(reloadData) withObject:nil afterDelay:0 inModes:@[NSRunLoopCommonModes]];
 }
 -(void)creatTableView{
     self.qgTableView = [[QGTableView alloc] initWithFrame:self.view.bounds style:UITableViewStyleGrouped];

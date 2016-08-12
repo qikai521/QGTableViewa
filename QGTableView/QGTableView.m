@@ -62,6 +62,19 @@ static char kQGTableView_subRowKey;
 
 @implementation QGTableView
 
+-(void)clearExpens{
+    for (QGTableViewCell *cell in self.visibleCells) {
+        if ([cell isKindOfClass:[QGTableViewCell class]] && cell.isOpened == YES) {
+            //如果说有打开状态的需要关闭
+            NSIndexPath *indexPath = [self indexPathForCell:cell];
+            [self tableView:self didSelectRowAtIndexPath:indexPath];
+        }
+    }
+    self.expandedCells = [NSMutableDictionary dictionary];
+    self.expandedPaths = [NSMutableArray array];
+}
+
+
 -(void)setQgDelegate:(id<QGTableViewDelegate>)qgDelegate{
     if (_qgDelegate != qgDelegate) {
         _qgDelegate = qgDelegate;
